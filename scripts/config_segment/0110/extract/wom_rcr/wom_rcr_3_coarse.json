@@ -1,0 +1,13 @@
+{
+  "mesh_label":"coarse",
+  "generation":3,
+  "labels":[
+    "pressure",
+    "velocity",
+    "vWSS"
+  ],
+  "start":1990,
+  "end":2005,
+  "incr":5,
+  "nproc":20
+}

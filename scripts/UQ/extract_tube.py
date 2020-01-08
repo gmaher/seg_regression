@@ -13,17 +13,12 @@ import numpy as np
 parser = argparse.ArgumentParser()
 parser.add_argument('-config')
 parser.add_argument('-tube_file')
+parser.add_argument('-vtu')
+parser.add_argument('-id')
 parser.add_argument('-output_fn')
 args = parser.parse_args()
 
 cfg = io.load_json(args.config)
-
-DIR          = cfg['dir']
-MESH_LABELS  = cfg['mesh_labels']
-GENS         = cfg['generations']
-NUM_MODELS   = cfg['num_models']
-SIM_NAME     = cfg['sim_name']
-RESULTS_FILE = cfg['results_file']
 
 LABS = cfg['labels']
 LABELS = []
@@ -48,46 +43,41 @@ N         = range(len(POINTS))
 
 data = []
 
-for gen in GENS:
-    for mesh in MESH_LABELS:
-        for nm in range(2):
-            vtu_fn = DIR+'/'+str(gen)+'/'+mesh+'/'+str(nm)+'/'+SIM_NAME+'/'+RESULTS_FILE
-            print(vtu_fn)
-            if not os.path.exists(vtu_fn): continue
+vtu_fn = args.vtu
+print(vtu_fn)
+if not os.path.exists(vtu_fn): raise RuntimeError("vtu doesnt exist {}".format(args.vtu))
 
-            pd = sv.read_vtu(vtu_fn)
+pd = sv.read_vtu(vtu_fn)
 
-            for j,p,n,r in zip(N, POINTS, NORMALS, RADIUSES):
-                surf = sv.clip_plane_rad(pd,p,n,r)
+for j,p,n,r in zip(N, POINTS, NORMALS, RADIUSES):
+    surf = sv.clip_plane_rad(pd,p,n,r)
 
-                #try:
-                area = sv.vtk_integrate_pd_area(surf)
-                length = sv.vtk_integrate_pd_boundary_length(surf)
+    #try:
+    area = sv.vtk_integrate_pd_area(surf)
+    length = sv.vtk_integrate_pd_boundary_length(surf)
 
-                d = {"generation":gen,
-                    "mesh":mesh,
-                    "model":nm,
-                    "point":j,
-                     "x":p[0], "y":p[1], "z":p[2],
-                     "nx":n[0],"ny":n[1],"nz":n[2],
-                     "radius_actual":np.sqrt(area/np.pi),
-                     "radius_supplied":r,
-                     "area":area,
-                     "length":length
-                     }
+    d = {"id":args.id,
+        "point":j,
+         "x":p[0], "y":p[1], "z":p[2],
+         "nx":n[0],"ny":n[1],"nz":n[2],
+         "radius_actual":np.sqrt(area/np.pi),
+         "radius_supplied":r,
+         "area":area,
+         "length":length
+         }
 
-                for l in LABELS:
-                    print(l)
-                    ints    = sv.vtk_integrate_pd_volume(surf, l)
-                    ints_bd = sv.vtk_integrate_pd_boundary(surf, l)
+    for l in LABELS:
+        print(l)
+        ints    = sv.vtk_integrate_pd_volume(surf, l)
+        ints_bd = sv.vtk_integrate_pd_boundary(surf, l)
 
-                    for k in range(len(ints)):
-                        d[l+'_'+str(k)] = ints[k]*1.0/area
-                        d[l+'_'+str(k)+'_boundary'] = ints_bd[k]*1.0/length
+        for k in range(len(ints)):
+            d[l+'_'+str(k)] = ints[k]*1.0/area
+            d[l+'_'+str(k)+'_boundary'] = ints_bd[k]*1.0/length
 
-                data.append(d)
-                #except:
-                    #print("failed vtu {} point {}".format(i,j))
+    data.append(d)
+    #except:
+        #print("failed vtu {} point {}".format(i,j))
 
 df = pandas.DataFrame(data)
 df.to_csv(args.output_fn)

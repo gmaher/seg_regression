@@ -1,0 +1,14 @@
+{
+  "vtu_list":"/media/marsdenlab/Data1/UQ/0110/lists/",
+  "mesh_label":"coarse",
+  "generation":1,
+  "labels":[
+    "pressure",
+    "velocity",
+    "vWSS"
+  ],
+  "start":1990,
+  "end":2005,
+  "incr":5,
+  "nproc":20
+}

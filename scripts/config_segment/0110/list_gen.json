@@ -1,0 +1,7 @@
+{
+  "main_dir":"/media/marsdenlab/Data1/UQ/0110/generations",
+  "mesh_labels":["coarse","medium","fine"],
+  "generations":["1","2","3","4"],
+  "sim_dirs":["sim_steady","sim_steady_real",
+    "sim_steady_real_in","sim_steady_real_out", "sim_wom_rcr"]
+}
